@@ -1,0 +1,36 @@
+name: test-deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: setup demo
+        run: |
+          touch file1
+          mkdir dir1
+      - name: Copy file
+        uses: ./
+        with:
+          local: ./file1
+          remote: /home/${{ secrets.USERNAME }}
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          port: ${{ secrets.PORT }}
+          password: ${{ secrets.PASSWORD }}
+      - name: Copy directory
+        uses: ./
+        with:
+          local: ./dir1
+          remote: /home/${{ secrets.USERNAME }}/dir1
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          port: ${{ secrets.PORT }}
+          password: ${{ secrets.PASSWORD }}
