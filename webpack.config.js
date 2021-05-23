@@ -20,6 +20,6 @@ module.exports = {
             "dns":false,
             "net":false,
             "child_process":false,
-        }
+        },
     },
 };
