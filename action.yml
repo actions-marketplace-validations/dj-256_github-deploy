@@ -1,0 +1,65 @@
+name: Github deploy scp
+author: dj256
+description: Github Action to deploy code on a remote server via scp
+inputs:
+  local:
+    description: "Path to the local file or folder"
+    required: true
+  remote:
+    description: "Path to the remote folder"
+    required: true
+#  dotfiles:
+#    description: "Determines if files with  leading dot (.) on folder copy is included"
+#    required: false
+#    default: false
+#  rmRemote:
+#    description: "If it is a directory, remote files in it will be deleted before the copy is started."
+#    required: false
+#  concurrency:
+#    description: "Number of concurrent file transfers."
+#    required: false
+#    default: 1
+#  recursive:
+#    description: "Wether copy of directory should be recursive"
+#    required: false
+#    default: true
+#  verbose:
+#    description: "Log status of every file copy"
+#    required: false
+#    default: true
+  host:
+    description: "Hostname or IP address of the server"
+    required: true
+  username:
+    description: "Username for authentication."
+    required: false
+  port:
+    description: "Port number of the server"
+    required: false
+    default: "22"
+#  privateKey:
+#    description: "File Location or string that contains a private key for either key-based or hostbased user authentication (OpenSSH format)"
+#    required: false
+  password:
+    description: "Password for password-based user authentication."
+    required: false
+#  passphrase:
+#    description: "For an encrypted private key, this is the passphrase used to decrypt it."
+#    required: false
+#  tryKeyboard:
+#    description: "Try keyboard-interactive user authentication if primary user authentication method fails."
+#    required: false
+#  atomicPut:
+#    description: "Upload files to temporary file first, then rename once upload completed"
+#    required: false
+#    default: false
+#  exclude:
+#    description: "Paths excluded from the copy (relative to remote path)"
+#    required: false
+#    default: ''
+runs:
+  using: "node12"
+  main: "dist/index.js"
+branding:
+  color: "purple"
+  icon: "copy"
