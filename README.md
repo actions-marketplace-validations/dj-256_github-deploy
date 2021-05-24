@@ -48,8 +48,8 @@ Github Action providing simple scp feature
 ### **Copy a directory excluding a subdirectory**
 ```yml
 - name: Copy exluding subdirectory
-    uses: dj-256/github-deploy@v1
-    with:
+  uses: dj-256/github-deploy@v1
+  with:
       local: ./
       remote: /var/www/dir
       host: ${{ secrets.HOST }}
@@ -82,5 +82,5 @@ Github Action providing simple scp feature
 
 ## Development
 
-This has been strongly inspired by [https://github.com/garygrossgarten/github-action-scp](garygrossgarten's github-action-scp)
-it uses [https://www.npmjs.com/package/node-scp](node-scp) and [https://www.npmjs.com/package/glob](glob)
+This has been strongly inspired by [garygrossgarten's github-action-scp](https://github.com/garygrossgarten/github-action-scp)
+it uses [node-scp](https://www.npmjs.com/package/node-scp) and [glob](https://www.npmjs.com/package/glob)
