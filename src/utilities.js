@@ -5,14 +5,12 @@ const glob = require('glob')
 const path = require('path')
 const {error} = require("@actions/core");
 let client
-let base
 let errorCount = 0
 let errorFiles = []
-let r
 let excludedPaths
 
 async function uploadFile (local, remote) {
-    let remotePath = remote + local.replace(r, "$2")
+    let remotePath = path.join(remote, local)
     try {
         await client.uploadFile(local, remotePath).then(()=>
         console.log(`copied file ${local} to ${remotePath} 🟢`))
@@ -25,7 +23,7 @@ async function uploadFile (local, remote) {
 }
 
 async function uploadDir (local, remote) {
-    let remotePath = remote + local.replace(r, "$2")
+    let remotePath = path.join(remote, local)
     try {
         await client.uploadDir(local, remotePath)
         console.log(`copied directory ${local} to ${remotePath} 🟢`)
@@ -52,7 +50,7 @@ function getPaths (local) {
     } else if (fs.statSync(local).isFile()) { // single file
         if (!excludedPaths.has(local)) {
             paths.push(local)
-            // console.log(`not exluded: ${file}`)
+            // console.log(`not excluded: ${file}`)
         }
     } else { // directory
         local = local.endsWith('/') ? local : local+'/'
@@ -64,7 +62,7 @@ function getPaths (local) {
             // console.log(file)
             if (!excludedPaths.has(local+file)) {
                 paths.push(local+file)
-                // console.log(`not exluded: ${file}`)
+                // console.log(`not excluded: ${file}`)
             }
         })
     }
@@ -95,9 +93,8 @@ async function copy (
         process.exit(1)
     }
 
-    base = path.basename(local)
-    r = RegExp(`.*(\.\/)?${base}\/(.*)`)
     local = path.normalize(local)
+    remote = path.normalize(remote)
 
     excludedPaths = new Set()
     if (exclude!==null) {

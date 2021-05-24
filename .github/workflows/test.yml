@@ -9,8 +9,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-      NODE_ENV: test
+#    env:
+#      NODE_ENV: test
     steps:
       - name: checkout
         uses: actions/checkout@v2
@@ -24,7 +24,7 @@ jobs:
       - name: Copy file
         uses: ./
         with:
-          local: ./file1
+          local: ./file1.txt
           remote: /scp
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
