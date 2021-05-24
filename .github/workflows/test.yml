@@ -9,6 +9,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      NODE_ENV: test
     steps:
       - name: checkout
         uses: actions/checkout@v2
@@ -55,3 +57,33 @@ jobs:
           username: ${{ secrets.USERNAME }}
           port: ${{ secrets.PORT }}
           password: ${{ secrets.PASSWORD }}
+      - name: Copy excluding js files
+        uses: ./
+        with:
+          local: 'dir1'
+          remote: /scp
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          port: ${{ secrets.PORT }}
+          password: ${{ secrets.PASSWORD }}
+          exclude: '*.js'
+      - name: Copy excluding dir1
+        uses: ./
+        with:
+          local: ''
+          remote: /scp
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          port: ${{ secrets.PORT }}
+          password: ${{ secrets.PASSWORD }}
+          exclude: 'dir1'
+      - name: Copy excluding dir1/file11.txt
+        uses: ./
+        with:
+          local: ''
+          remote: /scp
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          port: ${{ secrets.PORT }}
+          password: ${{ secrets.PASSWORD }}
+          exclude: 'dir1/file11.txt'

@@ -62,9 +62,9 @@ Github Action providing simple scp feature
 
 ## Options
 
-- **local** - _string_ - Path to the local file or directory you want to copy. **required**
+- **local** - _string_ - Path to the local file or directory you want to copy, relative to repository root. **required**
 
-- **remote** - _string_ - Path to the remote directory to copy the contents to. **required**
+- **remote** - _string_ - Path to the remote directory to copy the contents to, absolute. **required**
 
 - **host** - _string_ - Hostname or IP address of the server. **Default:** `'localhost'`
 
@@ -78,7 +78,8 @@ Github Action providing simple scp feature
 
 - **rmRemote** - _boolean_ - Clean directory before uploading. **Default:** `false`
 
-- **exclude** - _string_ - Paths excluded from the copy (relative to remote path)
+- **exclude** - _string_ - Paths excluded from the copy, relative to remote path. You can specify a single file or
+  directory or else, use a glob.
 
 ## Development
 

@@ -9,6 +9,7 @@ let base
 let errorCount = 0
 let errorFiles = []
 let r
+let excludedPaths
 
 async function uploadFile (local, remote) {
     let remotePath = remote + local.replace(r, "$2")
@@ -42,12 +43,18 @@ function getPaths (local) {
         glob(local, (err, files) => {
             files.forEach(file => {
                 // console.log(file)
-                paths.push(file)
+                if (!excludedPaths.has(file)) {
+                    paths.push(file)
+                    // console.log(`not exluded: ${file}`)
+                }
             })
         })
     } else if (fs.statSync(local).isFile()) { // single file
-        paths.push(local)
-    } else { // directory (most likely)
+        if (!excludedPaths.has(local)) {
+            paths.push(local)
+            // console.log(`not exluded: ${file}`)
+        }
+    } else { // directory
         local = local.endsWith('/') ? local : local+'/'
         let files = fs.readdirSync(local)
         if (files.length===0) {
@@ -55,7 +62,10 @@ function getPaths (local) {
         }
         files.forEach(file =>  {
             // console.log(file)
-            paths.push(local+file)
+            if (!excludedPaths.has(local+file)) {
+                paths.push(local+file)
+                // console.log(`not exluded: ${file}`)
+            }
         })
     }
     return paths
@@ -67,7 +77,8 @@ async function copy (
     username,
     password,
     local,
-    remote
+    remote,
+    exclude
 ) {
     try {
         client = await scp({
@@ -86,14 +97,37 @@ async function copy (
 
     base = path.basename(local)
     r = RegExp(`.*(\.\/)?${base}\/(.*)`)
-    let stack = getPaths(local)
+    local = path.normalize(local)
+
+    excludedPaths = new Set()
+    if (exclude!==null) {
+        let files
+        let excludePath = path.join(local, exclude)
+        if (fs.statSync(local).isDirectory()) {
+            if (exclude.match(/\*/)) {
+                // console.log(`excluded: ${excludePath}`)
+                files = glob.sync(excludePath)
+            } else {
+                if (fs.statSync(excludePath).isDirectory()) {
+                    files = fs.readdirSync(excludePath)
+                    files = files.map(file => path.join(excludePath,file))
+                }
+            }
+            // console.log(`exluded files: ${files}`)
+            files.forEach(file => {
+                excludedPaths.add(file)
+            })
+        }
+    }
+
+    let stack = getPaths(local, exclude)
     while (stack.length!==0) {
         let path = stack.pop()
         if (fs.statSync(path).isFile()) {
             await uploadFile(path, remote)
             // console.log(`file: ${path}`)
         } else {
-            let paths = getPaths(path)
+            let paths = getPaths(path, exclude)
             await uploadDir(path, remote)
             // console.log(`directory: ${path}`)
             paths.forEach(p => stack.push(p))
@@ -119,7 +153,7 @@ async function run (
     const remote = core.getInput('remote').match(/\/$/) ? core.getInput('remote') : core.getInput('remote')+'/';
     // const rmRemote = !!core.getInput('rmRemote') || false;
     // const atomicPut = core.getInput('atomicPut');
-    // const exclude = core.getInput('exclude') || null;
+    const exclude = core.getInput('exclude') || null;
 
 
     await copy(
@@ -129,6 +163,7 @@ async function run (
         password,
         local,
         remote,
+        exclude
     )
 }
 
