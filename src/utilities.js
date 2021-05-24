@@ -164,7 +164,7 @@ async function run (
         local,
         remote,
         exclude
-    )
+    ).then(process.exit(0))
 }
 
 module.exports = { copy, run }
