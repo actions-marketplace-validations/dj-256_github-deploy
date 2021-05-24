@@ -12,8 +12,8 @@ let excludedPaths
 async function uploadFile (local, remote) {
     let remotePath = path.join(remote, local)
     try {
-        await client.uploadFile(local, remotePath).then(()=>
-        console.log(`copied file ${local} to ${remotePath} 🟢`))
+        await client.uploadFile(local, remotePath)
+        console.log(`copied file ${local} to ${remotePath} 🟢`)
     } catch (e) {
         console.log(`couldn't copy file ${local} to ${remotePath} 🔴`)
         console.log(e)
@@ -147,7 +147,7 @@ async function run (
     // const concurrency = +core.getInput('concurrency') || 1;
     const local = core.getInput('local');
     // const dotfiles = !!core.getInput('dotfiles') || true;
-    const remote = core.getInput('remote').match(/\/$/) ? core.getInput('remote') : core.getInput('remote')+'/';
+    const remote = core.getInput('remote');
     // const rmRemote = !!core.getInput('rmRemote') || false;
     // const atomicPut = core.getInput('atomicPut');
     const exclude = core.getInput('exclude') || null;
