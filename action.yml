@@ -53,10 +53,10 @@ inputs:
 #    description: "Upload files to temporary file first, then rename once upload completed"
 #    required: false
 #    default: false
-#  exclude:
-#    description: "Paths excluded from the copy (relative to remote path)"
-#    required: false
-#    default: ''
+  exclude:
+    description: "Paths excluded from the copy (relative to remote path)"
+    required: false
+    default: ''
 runs:
   using: "node12"
   main: "dist/index.js"
