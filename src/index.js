@@ -1,3 +1,3 @@
 const util = require('./utilities')
 
-util.run()
+util.run().then(()=>process.exit(0))
