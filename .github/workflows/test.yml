@@ -20,7 +20,7 @@ jobs:
         uses: ./
         with:
           local: ./file1
-          remote: /home/${{ secrets.USERNAME }}
+          remote: /scp
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           port: ${{ secrets.PORT }}
@@ -29,7 +29,7 @@ jobs:
         uses: ./
         with:
           local: ./dir1
-          remote: /home/${{ secrets.USERNAME }}/dir1
+          remote: /scp
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           port: ${{ secrets.PORT }}
