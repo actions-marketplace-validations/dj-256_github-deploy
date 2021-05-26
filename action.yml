@@ -8,10 +8,10 @@ inputs:
   remote:
     description: "Path to the remote folder"
     required: true
-#  dotfiles:
-#    description: "Determines if files with  leading dot (.) on folder copy is included"
-#    required: false
-#    default: false
+  dotfiles:
+    description: "Determines if files with  leading dot (.) on folder copy is included"
+    required: false
+    default: false
 #  rmRemote:
 #    description: "If it is a directory, remote files in it will be deleted before the copy is started."
 #    required: false
