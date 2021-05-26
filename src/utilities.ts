@@ -4,12 +4,10 @@ import scp = require('node-scp');
 import fs = require('fs');
 import glob = require('glob');
 import * as core from "@actions/core";
+import ini = require('ini')
 
 let client: any
-let errorCount = 0
-let errorFiles = []
-let excludedPaths
-let localBase
+let localBase: string
 
 enum PathType {
     file, directory
@@ -25,8 +23,20 @@ class Element {
     }
 }
 
+interface Options {
+    host: string,
+    username: string,
+    password: string,
+    port: number,
+    local: string,
+    remote: string,
+    exclude: string,
+    dotFiles?: boolean,
+    rmRemote?: boolean,
+}
+
 const relativeLocal = (filePath: string) => {
-    return filePath.substr(localBase.length-1,filePath.length-1)
+    return filePath.substring(localBase.length)
 }
 
 async function upload (element: Element, remote: string) {
@@ -40,8 +50,6 @@ async function upload (element: Element, remote: string) {
         } catch (e) {
             console.log(`couldn't copy file ${localPath} to ${remotePath} 🔴`)
             console.log(e)
-            // errorCount++;
-            // errorFiles.push(local)
         }
     } else {
         try {
@@ -54,24 +62,25 @@ async function upload (element: Element, remote: string) {
     }
 }
 
-function getElements (local:string, exclude:string, dotFiles:boolean) {
+function getElements(local: string, exclude: string, dotFiles: boolean) {
     let elements: Element[] = []
     let excludeGlob = exclude
-    // if (fs.statSync(local).isDirectory()) local+='/*'
+    let files: string[]
+    if (fs.statSync(local).isDirectory()) local = path.join(local, '**/*')
     if (exclude!=='') {
         exclude = path.join(local, exclude)
-        if (!exclude.match(/\*/)) {
-            if (fs.statSync(exclude).isDirectory()) excludeGlob = path.join(exclude, '/**/*')
+        if (!exclude.match(/\*/) && fs.statSync(exclude).isDirectory()) {
+            excludeGlob = path.join(exclude, '/**/*')
         }
         exclude = exclude.replace(/\*\.(\w*)$/, "**/*.$1")
+        let excludeList = glob.sync(excludeGlob)
+        excludeList.push(exclude)
+        files = glob.sync(local, {ignore:excludeList, dot:dotFiles})
+    } else {
+        files = glob.sync(local ,{dot: dotFiles})
     }
-    if (fs.statSync(local).isDirectory()) local = path.join(local, '**/*')
-    let excludeList = glob.sync(excludeGlob)
-    excludeList.push(exclude)
-    let files = glob.sync(local, {ignore:excludeList, dot:dotFiles})
-    // files.map(file => path.basename(file))
+
     files.forEach(localPath => {
-        // console.log(file)
         if (fs.statSync(localPath).isFile()) {
             elements.push({type: PathType.file, path: localPath})
         } else {
@@ -82,14 +91,14 @@ function getElements (local:string, exclude:string, dotFiles:boolean) {
 }
 
 export async function copy (
-    host: string,
-    port: number,
-    username: string,
-    password: string,
-    local: string,
-    remote: string,
-    exclude: string,
-    dotfiles: boolean,
+    {host,
+    port,
+    username,
+    password,
+    local,
+    remote,
+    exclude,
+    dotFiles=true}: Options
 ) {
     try {
         // @ts-ignore
@@ -98,8 +107,6 @@ export async function copy (
             port: port,
             username: username,
             password: password,
-            // privateKey: privateKey,
-            // passphrase: passphrase
         })
     } catch (e) {
         console.log(`Couldn't connect to server ❌\nPlease check your action parameters`)
@@ -111,7 +118,7 @@ export async function copy (
     localBase = local
     remote = path.normalize(remote)
 
-    let elements = getElements(local, exclude, dotfiles)
+    let elements = getElements(local, exclude, dotFiles)
     for (const elt of elements) {
         await upload(elt, remote)
     }
@@ -120,32 +127,23 @@ export async function copy (
 
 export async function run (
 ) {
-    const host = core.getInput('host');
-    const username = core.getInput('username');
-    const port = +core.getInput('port') || 22;
-    // const privateKey = core.getInput('privateKey');
-    const password = core.getInput('password');
-    // const passphrase = core.getInput('passphrase');
-    // const tryKeyboard = !!core.getInput('tryKeyboard');
-    // const verbose = !!core.getInput('verbose') || true;
-    // const recursive = !!core.getInput('recursive') || true;
-    // const concurrency = +core.getInput('concurrency') || 1;
-    const local = core.getInput('local');
-    const dotfiles = !!core.getInput('dotfiles') || true;
-    const remote = core.getInput('remote');
-    // const rmRemote = !!core.getInput('rmRemote') || false;
-    // const atomicPut = core.getInput('atomicPut');
-    const exclude = core.getInput('exclude') || '';
-
-
-    await copy(
-        host,
-        port,
-        username,
-        password,
-        local,
-        remote,
-        exclude,
-        dotfiles
-    )
+    if (process.env.NODE_ENV==='test') {
+        let config = ini.parse(fs.readFileSync('configuration.ini', 'utf-8'));
+        let options = config.options
+        console.log(options)
+        await copy(
+            options
+        )
+    } else {
+        await copy ({
+            host: core.getInput('host'),
+            username: core.getInput('username'),
+            password: core.getInput('password'),
+            port: +core.getInput('port') || 22,
+            local: core.getInput('local'),
+            dotFiles: !!core.getInput('dotfiles') || true,
+            remote: core.getInput('remote'),
+            exclude: core.getInput('exclude') || '',
+        })
+    }
 }

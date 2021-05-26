@@ -4,7 +4,11 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "run": "src/index.js"
+    "run": "dist/index.js",
+    "compile": "tsc",
+    "webpack": "npx webpack",
+    "build": "npm run compile && webpack",
+    "test": "dist/test.js"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +21,8 @@
   },
   "devDependencies": {
     "@types/glob": "^7.1.3",
+    "@types/ini": "^1.3.30",
+    "ini": "^2.0.0",
     "node-polyfill-webpack-plugin": "^1.1.2",
     "webpack": "^5.37.1",
     "webpack-cli": "^4.7.0"
