@@ -4,6 +4,6 @@
 node_modules
 ./package-lock.json
 res
-./configuration.ini
 ./src/test.ts
 dist
+./configuration.ini
