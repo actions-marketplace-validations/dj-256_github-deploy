@@ -8,7 +8,7 @@ import ini = require('ini')
 
 let client: any
 let localBase: string
-
+const TEST = false
 enum PathType {
     file, directory
 }
@@ -127,15 +127,15 @@ export async function copy (
 
 export async function run (
 ) {
-    if (process.env.NODE_ENV==='test') {
+    if (process.env.NODE_ENV==='test' || TEST) {
         let config = ini.parse(fs.readFileSync('configuration.ini', 'utf-8'));
         let options = config.options
         console.log(options)
-        await copy(
+        return await copy(
             options
         )
     } else {
-        await copy ({
+        return await copy ({
             host: core.getInput('host'),
             username: core.getInput('username'),
             password: core.getInput('password'),
