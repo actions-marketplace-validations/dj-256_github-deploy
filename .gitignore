@@ -1,9 +1,8 @@
 *.DS_Store
 .idea
-./test
 node_modules
 ./package-lock.json
 res
-./src/test.ts
 dist
-./configuration.ini
+*.ini
+*.sh
