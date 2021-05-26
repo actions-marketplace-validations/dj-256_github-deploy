@@ -8,64 +8,59 @@ let client
 let errorCount = 0
 let errorFiles = []
 let excludedPaths
+let localBase
 
-async function uploadFile (local, remote) {
-    let remotePath = path.join(remote, local)
-    try {
-        await client.uploadFile(local, remotePath)
-        console.log(`copied file ${local} to ${remotePath} 🟢`)
-    } catch (e) {
-        console.log(`couldn't copy file ${local} to ${remotePath} 🔴`)
-        console.log(e)
-        // errorCount++;
-        // errorFiles.push(local)
+const relativeLocal = (filePath) => {
+    return filePath.substr(localBase.length-1,filePath.length-1)
+}
+
+async function upload (elt, remote) {
+    let localPath = elt.path
+    let remotePath = path.join(remote, relativeLocal(localPath))
+
+    if (elt.type==='file') {
+        try {
+            await client.uploadFile(localPath, remotePath)
+            console.log(`copied file ${localPath} to ${remotePath} 🟢`)
+        } catch (e) {
+            console.log(`couldn't copy file ${localPath} to ${remotePath} 🔴`)
+            console.log(e)
+            // errorCount++;
+            // errorFiles.push(local)
+        }
+    } else {
+        try {
+            await client.mkdir(remotePath)
+            console.log(`created directory ${remotePath} 🟢`)
+        } catch (e) {
+            console.log(`couldn't create directory ${remotePath} 🔴`)
+            console.log(e)
+        }
     }
 }
 
-async function uploadDir (local, remote) {
-    let remotePath = path.join(remote, local)
-    try {
-        await client.uploadDir(local, remotePath)
-        console.log(`copied directory ${local} to ${remotePath} 🟢`)
-    } catch (e) {
-        console.log(`couldn't copy directory ${local} to ${remotePath} 🔴`)
-        console.log(e)
-        // errorCount++;
-    }
-}
-
-function getPaths (local) {
+function getPaths (local, exclude, dotFiles) {
     let paths = []
-
-    if (local.match(/\*/)) { // glob path
-        glob(local, (err, files) => {
-            files.forEach(file => {
-                // console.log(file)
-                if (!excludedPaths.has(file)) {
-                    paths.push(file)
-                    // console.log(`not exluded: ${file}`)
-                }
-            })
-        })
-    } else if (fs.statSync(local).isFile()) { // single file
-        if (!excludedPaths.has(local)) {
-            paths.push(local)
-            // console.log(`not excluded: ${file}`)
-        }
-    } else { // directory
-        local = local.endsWith('/') ? local : local+'/'
-        let files = fs.readdirSync(local)
-        if (files.length===0) {
-            error('Directory is empty')
-        }
-        files.forEach(file =>  {
-            // console.log(file)
-            if (!excludedPaths.has(local+file)) {
-                paths.push(local+file)
-                // console.log(`not excluded: ${file}`)
-            }
-        })
+    let excludeGlob
+    // if (fs.statSync(local).isDirectory()) local+='/*'
+    exclude = path.join(local, exclude)
+    if (!exclude.match(/\*/)) {
+        if (fs.statSync(exclude).isDirectory()) excludeGlob = path.join(exclude,'/**/*')
     }
+    exclude = exclude.replace(/\*\.(\w*)$/, '**/*.$1')
+    if (fs.statSync(local).isDirectory()) local = path.join(local, '**/*')
+    let excludeList = glob.sync(excludeGlob)
+    excludeList.push(exclude)
+    let files = glob.sync(local, {ignore:excludeList, dot:dotFiles})
+    // files.map(file => path.basename(file))
+    files.forEach(path => {
+        // console.log(file)
+        if (fs.statSync(path).isFile()) {
+            paths.push({type: 'file', path: path})
+        } else {
+            paths.push({type: 'directory', path: path})
+        }
+    })
     return paths
 }
 
@@ -76,7 +71,8 @@ async function copy (
     password,
     local,
     remote,
-    exclude
+    exclude,
+    dotfiles
 ) {
     try {
         client = await scp({
@@ -94,41 +90,12 @@ async function copy (
     }
 
     local = path.normalize(local)
+    localBase = local
     remote = path.normalize(remote)
 
-    excludedPaths = new Set()
-    if (exclude!==null) {
-        let files
-        let excludePath = path.join(local, exclude)
-        if (fs.statSync(local).isDirectory()) {
-            if (exclude.match(/\*/)) {
-                // console.log(`excluded: ${excludePath}`)
-                files = glob.sync(excludePath)
-            } else {
-                if (fs.statSync(excludePath).isDirectory()) {
-                    files = fs.readdirSync(excludePath)
-                    files = files.map(file => path.join(excludePath,file))
-                }
-            }
-            // console.log(`exluded files: ${files}`)
-            files.forEach(file => {
-                excludedPaths.add(file)
-            })
-        }
-    }
-
-    let stack = getPaths(local, exclude)
-    while (stack.length!==0) {
-        let path = stack.pop()
-        if (fs.statSync(path).isFile()) {
-            await uploadFile(path, remote)
-            // console.log(`file: ${path}`)
-        } else {
-            let paths = getPaths(path, exclude)
-            await uploadDir(path, remote)
-            // console.log(`directory: ${path}`)
-            paths.forEach(p => stack.push(p))
-        }
+    let elements = getPaths(local, exclude, dotfiles)
+    for (const elt of elements) {
+        await upload(elt, remote)
     }
     await client.close()
 }
@@ -146,7 +113,7 @@ async function run (
     // const recursive = !!core.getInput('recursive') || true;
     // const concurrency = +core.getInput('concurrency') || 1;
     const local = core.getInput('local');
-    // const dotfiles = !!core.getInput('dotfiles') || true;
+    const dotfiles = !!core.getInput('dotfiles') || true;
     const remote = core.getInput('remote');
     // const rmRemote = !!core.getInput('rmRemote') || false;
     // const atomicPut = core.getInput('atomicPut');
@@ -160,9 +127,9 @@ async function run (
         password,
         local,
         remote,
-        exclude
+        exclude,
+        dotfiles
     )
 }
 
 module.exports = { copy, run }
-

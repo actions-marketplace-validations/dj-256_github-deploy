@@ -56,7 +56,7 @@ Github Action providing simple scp feature
       username: ${{ secrets.SSH_USER }}
       password: ${{ secrets.PASSWORD }}
       port: ${{ secrets.SSH_PORT }}
-      exclude: 'out/*'
+      exclude: 'out'
 ```
 
 

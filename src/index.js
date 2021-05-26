@@ -1,3 +1,5 @@
-const util = require('./utilities')
+const util = require('./utilities');
 
-util.run().then(()=>process.exit(0))
+(async function () {
+    await util.run()
+})()
