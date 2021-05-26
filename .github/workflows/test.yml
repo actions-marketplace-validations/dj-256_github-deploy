@@ -40,15 +40,6 @@ jobs:
           username: ${{ secrets.USERNAME }}
           port: ${{ secrets.PORT }}
           password: ${{ secrets.PASSWORD }}
-      - name: Copy files with simple glob path
-        uses: ./
-        with:
-          local: 'res/*.js'
-          remote: /scp
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          port: ${{ secrets.PORT }}
-          password: ${{ secrets.PASSWORD }}
       - name: Copy excluding all js files recursively
         uses: ./
         with:
