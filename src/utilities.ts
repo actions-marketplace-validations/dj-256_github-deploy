@@ -1,24 +1,39 @@
-const core = require('@actions/core')
-const scp = require('node-scp')
-const fs = require('fs')
-const glob = require('glob')
-const path = require('path')
-const {error} = require("@actions/core");
-let client
+import {error} from "@actions/core";
+import path = require('path');
+import scp = require('node-scp');
+import fs = require('fs');
+import glob = require('glob');
+import * as core from "@actions/core";
+
+let client: any
 let errorCount = 0
 let errorFiles = []
 let excludedPaths
 let localBase
 
-const relativeLocal = (filePath) => {
+enum PathType {
+    file, directory
+}
+
+class Element {
+    type: PathType
+    path: string
+
+    constructor(type:PathType, path:string) {
+        this.type = type
+        this.path = path
+    }
+}
+
+const relativeLocal = (filePath: string) => {
     return filePath.substr(localBase.length-1,filePath.length-1)
 }
 
-async function upload (elt, remote) {
-    let localPath = elt.path
+async function upload (element: Element, remote: string) {
+    let localPath = element.path
     let remotePath = path.join(remote, relativeLocal(localPath))
 
-    if (elt.type==='file') {
+    if (element.type===PathType.file) {
         try {
             await client.uploadFile(localPath, remotePath)
             console.log(`copied file ${localPath} to ${remotePath} 🟢`)
@@ -39,15 +54,17 @@ async function upload (elt, remote) {
     }
 }
 
-function getPaths (local, exclude, dotFiles) {
-    let paths = []
-    let excludeGlob
+function getElements (local:string, exclude:string, dotFiles:boolean) {
+    let elements: Element[] = []
+    let excludeGlob = exclude
     // if (fs.statSync(local).isDirectory()) local+='/*'
-    exclude = path.join(local, exclude)
-    if (!exclude.match(/\*/)) {
-        if (fs.statSync(exclude).isDirectory()) excludeGlob = path.join(exclude,'/**/*')
+    if (exclude!=='') {
+        exclude = path.join(local, exclude)
+        if (!exclude.match(/\*/)) {
+            if (fs.statSync(exclude).isDirectory()) excludeGlob = path.join(exclude, '/**/*')
+        }
+        exclude = exclude.replace(/\*\.(\w*)$/, "**/*.$1")
     }
-    exclude = exclude.replace(/\*\.(\w*)$/, '**/*.$1')
     if (fs.statSync(local).isDirectory()) local = path.join(local, '**/*')
     let excludeList = glob.sync(excludeGlob)
     excludeList.push(exclude)
@@ -56,25 +73,26 @@ function getPaths (local, exclude, dotFiles) {
     files.forEach(localPath => {
         // console.log(file)
         if (fs.statSync(localPath).isFile()) {
-            paths.push({type: 'file', path: localPath})
+            elements.push({type: PathType.file, path: localPath})
         } else {
-            paths.push({type: 'directory', path: localPath})
+            elements.push({type: PathType.directory, path: localPath})
         }
     })
-    return paths
+    return elements
 }
 
-async function copy (
-    host,
-    port,
-    username,
-    password,
-    local,
-    remote,
-    exclude,
-    dotfiles
+export async function copy (
+    host: string,
+    port: number,
+    username: string,
+    password: string,
+    local: string,
+    remote: string,
+    exclude: string,
+    dotfiles: boolean,
 ) {
     try {
+        // @ts-ignore
         client = await scp({
             host: host,
             port: port,
@@ -93,14 +111,14 @@ async function copy (
     localBase = local
     remote = path.normalize(remote)
 
-    let elements = getPaths(local, exclude, dotfiles)
+    let elements = getElements(local, exclude, dotfiles)
     for (const elt of elements) {
         await upload(elt, remote)
     }
     return await client.close()
 }
 
-async function run (
+export async function run (
 ) {
     const host = core.getInput('host');
     const username = core.getInput('username');
@@ -117,7 +135,7 @@ async function run (
     const remote = core.getInput('remote');
     // const rmRemote = !!core.getInput('rmRemote') || false;
     // const atomicPut = core.getInput('atomicPut');
-    const exclude = core.getInput('exclude') || null;
+    const exclude = core.getInput('exclude') || '';
 
 
     copy(

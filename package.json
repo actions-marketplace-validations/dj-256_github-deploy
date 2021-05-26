@@ -12,9 +12,11 @@
   "dependencies": {
     "@actions/core": "^1.3.0",
     "glob": "^7.1.7",
-    "node-scp": "0.0.14"
+    "node-scp": "0.0.14",
+    "typescript": "^4.2.4"
   },
   "devDependencies": {
+    "@types/glob": "^7.1.3",
     "node-polyfill-webpack-plugin": "^1.1.2",
     "webpack": "^5.37.1",
     "webpack-cli": "^4.7.0"
