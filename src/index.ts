@@ -1,4 +1,4 @@
 import {run} from "./utilities";
 
 
-run().then(()=>process.exit(0))
+run().then(r => console.log('Done'))
