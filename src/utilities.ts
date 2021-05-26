@@ -115,7 +115,7 @@ export async function copy (
     }
 
     local = path.normalize(local)
-    localBase = local
+    localBase = fs.statSync(local).isDirectory() ? local : path.dirname(local)
     remote = path.normalize(remote)
 
     let elements = getElements(local, exclude, dotFiles)
