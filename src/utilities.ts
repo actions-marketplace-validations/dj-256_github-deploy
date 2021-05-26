@@ -138,7 +138,7 @@ export async function run (
     const exclude = core.getInput('exclude') || '';
 
 
-    copy(
+    await copy(
         host,
         port,
         username,
@@ -147,11 +147,5 @@ export async function run (
         remote,
         exclude,
         dotfiles
-    ).then(process.exit(0))
-        .catch(e=>{
-            console.log('erreur')
-            console.log(e)
-        })
+    )
 }
-
-module.exports = { copy, run }

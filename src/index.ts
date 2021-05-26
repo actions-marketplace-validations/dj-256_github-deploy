@@ -1,4 +1,5 @@
 import {run} from "./utilities";
 
-
-run().then(r => console.log('Done'))
+(async function () {
+    await run()
+})()
