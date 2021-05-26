@@ -53,12 +53,12 @@ function getPaths (local, exclude, dotFiles) {
     excludeList.push(exclude)
     let files = glob.sync(local, {ignore:excludeList, dot:dotFiles})
     // files.map(file => path.basename(file))
-    files.forEach(path => {
+    files.forEach(localPath => {
         // console.log(file)
-        if (fs.statSync(path).isFile()) {
-            paths.push({type: 'file', path: path})
+        if (fs.statSync(localPath).isFile()) {
+            paths.push({type: 'file', path: localPath})
         } else {
-            paths.push({type: 'directory', path: path})
+            paths.push({type: 'directory', path: localPath})
         }
     })
     return paths
@@ -97,7 +97,7 @@ async function copy (
     for (const elt of elements) {
         await upload(elt, remote)
     }
-    await client.close()
+    return await client.close()
 }
 
 async function run (
