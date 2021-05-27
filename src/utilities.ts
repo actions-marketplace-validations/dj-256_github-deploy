@@ -36,6 +36,9 @@ interface Options {
 }
 
 const relativeLocal = (filePath: string) => {
+    if (localBase.match(/^(\.\/?)?$/)) {
+        return filePath
+    }
     return filePath.substring(localBase.length)
 }
 
