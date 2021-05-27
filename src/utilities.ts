@@ -122,20 +122,24 @@ function getElements(local: string, exclude: string, dotFiles: boolean) {
     let excludeGlob = exclude
     let excludeList: string[] = []
     let files: string[]
-    if (fs.statSync(local).isDirectory()) local = path.join(local, '**/*')
+
+    if (fs.statSync(local).isFile()) {
+        return [{type: PathType.file, path: local}]
+    }
     if (exclude!=='') {
         exclude = path.join(local, exclude)
-        if (!exclude.match(/\*/) && fs.statSync(exclude).isDirectory()) {
+        if (!exclude.match(/\*/)) {
             excludeGlob = path.join(exclude, '/**/*')
+        } else {
+            excludeGlob = exclude.replace(/\*\.(\w*)$/, "**/*.$1")
         }
-        exclude = exclude.replace(/\*\.(\w*)$/, "**/*.$1")
-        excludeList = glob.sync(excludeGlob)
+        glob.sync(excludeGlob).forEach(file => excludeList.push(file))
         excludeList.push(exclude)
     }
     glob.sync('.git/**/*').forEach(file => excludeList.push(file))
     glob.sync('.github/**/*').forEach(file => excludeList.push(file))
     glob.sync('.idea/**/*').forEach(file => excludeList.push(file))
-    files = glob.sync(local, {ignore:excludeList, dot:dotFiles})
+    files = glob.sync(path.join(local, '**/*'), {ignore:excludeList, dot:dotFiles})
     files.forEach(localPath => {
         if (fs.statSync(localPath).isFile()) {
             elements.push({type: PathType.file, path: localPath})
