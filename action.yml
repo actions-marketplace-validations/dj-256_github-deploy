@@ -8,27 +8,27 @@ inputs:
   remote:
     description: "Path to the remote folder"
     required: true
-  dotfiles:
-    description: "Determines if files with a leading dot (.) on folder copy is included"
-    required: false
-    default: false
   host:
     description: "Hostname or IP address of the server"
     required: true
   username:
     description: "Username for authentication."
     required: false
+  password:
+    description: "Password for authentication."
+    required: false
   port:
-    description: "Port number of the server"
+    description: "Port of the server to connect to"
     required: false
     default: "22"
-  password:
-    description: "Password for password-based user authentication."
-    required: false
   exclude:
     description: "Paths excluded from the copy (relative to remote path)"
     required: false
     default: ''
+  dotfiles:
+    description: "Determines if files with a leading dot (.) on folder copy is included"
+    required: false
+    default: false
 runs:
   using: "node12"
   main: "out/main.js"

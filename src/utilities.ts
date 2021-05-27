@@ -6,7 +6,7 @@ import glob = require('glob');
 import * as core from "@actions/core";
 import ini = require('ini')
 
-let client: any
+let client: scp.ScpClient
 let localBase: string
 const TEST = false
 enum PathType {
@@ -23,6 +23,17 @@ class Element {
     }
 }
 
+interface NodeSCPElement {
+    type: string
+    name: string
+    size?: number
+    modifyTime: number
+    accessTime: number
+    rights: {user: string, group: string, other: string}
+    owner: number
+    group:number
+}
+
 interface Options {
     host: string,
     username: string,
@@ -33,6 +44,47 @@ interface Options {
     exclude: string,
     dotFiles?: boolean,
     rmRemote?: boolean,
+}
+
+async function removeRemoteFile(file: string) {
+    try {
+        await client.unlink(file)
+        console.log(`removed file ${file}`)
+    } catch (err) {
+        console.log(`couldn't remove file ${file} 🔴`)
+        console.log(err.message)
+    }
+}
+
+async function removeRemoteDir(dir: string) {
+    try {
+        await client.rmdir(dir)
+        console.log(`removed directory ${dir}`)
+    } catch (err) {
+        console.log(`couldn't remove directory ${dir} 🔴`)
+        console.log(err.message)
+    }
+}
+
+async function removeRemoteElement(element: NodeSCPElement, remote: string) {
+    if (element.type==='d') {
+        return await removeRemoteDir(path.join(remote, element.name))
+    } else {
+        return await removeRemoteFile(path.join(remote, element.name))
+    }
+}
+
+async function removeRemote(remote: string) {
+    let files
+    try {
+        files = await client.list(remote)
+    } catch (err) {
+        console.log(err.message)
+    }
+    for(let file of files) {
+        await removeRemoteElement(file, remote)
+    }
+    console.log('removed remote')
 }
 
 const relativeLocal = (filePath: string) => {
@@ -102,7 +154,8 @@ export async function copy (
     local,
     remote,
     exclude,
-    dotFiles=true}: Options
+    dotFiles=true,
+    rmRemote}: Options
 ) {
     try {
         // @ts-ignore
@@ -121,6 +174,10 @@ export async function copy (
     local = path.normalize(local)
     localBase = fs.statSync(local).isDirectory() ? local : path.dirname(local)
     remote = path.normalize(remote)
+
+    if (rmRemote) {
+        await removeRemote(remote)
+    }
 
     let elements = getElements(local, exclude, dotFiles)
     for (const elt of elements) {
@@ -148,6 +205,7 @@ export async function run (
             dotFiles: !!core.getInput('dotfiles') || true,
             remote: core.getInput('remote'),
             exclude: core.getInput('exclude') || '',
+            rmRemote: !!core.getInput('rmRemote') || true,
         })
     }
 }
