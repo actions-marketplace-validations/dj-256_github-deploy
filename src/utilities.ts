@@ -68,6 +68,7 @@ async function upload (element: Element, remote: string) {
 function getElements(local: string, exclude: string, dotFiles: boolean) {
     let elements: Element[] = []
     let excludeGlob = exclude
+    let excludeList: string[] = []
     let files: string[]
     if (fs.statSync(local).isDirectory()) local = path.join(local, '**/*')
     if (exclude!=='') {
@@ -76,13 +77,13 @@ function getElements(local: string, exclude: string, dotFiles: boolean) {
             excludeGlob = path.join(exclude, '/**/*')
         }
         exclude = exclude.replace(/\*\.(\w*)$/, "**/*.$1")
-        let excludeList = glob.sync(excludeGlob)
+        excludeList = glob.sync(excludeGlob)
         excludeList.push(exclude)
-        files = glob.sync(local, {ignore:excludeList, dot:dotFiles})
-    } else {
-        files = glob.sync(local ,{dot: dotFiles})
     }
-
+    glob.sync('.git/**/*').forEach(file => excludeList.push(file))
+    glob.sync('.github/**/*').forEach(file => excludeList.push(file))
+    glob.sync('.idea/**/*').forEach(file => excludeList.push(file))
+    files = glob.sync(local, {ignore:excludeList, dot:dotFiles})
     files.forEach(localPath => {
         if (fs.statSync(localPath).isFile()) {
             elements.push({type: PathType.file, path: localPath})
