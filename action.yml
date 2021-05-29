@@ -29,6 +29,11 @@ inputs:
     description: "Determines if files with a leading dot (.) on folder copy is included"
     required: false
     default: false
+  rmRemote:
+    description: "Whether or not to erase all content in the remote directory before copy. Note that file having the
+    same name will still be erased even if you set this option to false"
+    required: false
+    default: true
 runs:
   using: "node12"
   main: "out/main.js"
