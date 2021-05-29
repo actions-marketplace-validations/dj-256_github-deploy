@@ -206,6 +206,7 @@ export async function run (
             options
         )
     } else {
+        console.log(core.getInput('rmRemote'))
         return await copy ({
             host: core.getInput('host'),
             username: core.getInput('username'),
