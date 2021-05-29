@@ -42,8 +42,8 @@ interface Options {
     local: string,
     remote: string,
     exclude: string,
-    dotFiles?: boolean,
-    rmRemote?: boolean,
+    dotFiles: boolean,
+    rmRemote: boolean,
 }
 
 async function removeRemoteFile(file: string) {
@@ -95,6 +95,7 @@ const relativeLocal = (filePath: string) => {
 }
 
 async function upload (element: Element, remote: string) {
+    console.log(`Uploading element ${element}`)
     let localPath = element.path
     let remotePath = path.join(remote, relativeLocal(localPath))
 
@@ -147,6 +148,7 @@ function getElements(local: string, exclude: string, dotFiles: boolean) {
             elements.push({type: PathType.directory, path: localPath})
         }
     })
+    console.log('Element list generated')
     return elements
 }
 
@@ -158,7 +160,7 @@ export async function copy (
     local,
     remote,
     exclude,
-    dotFiles=true,
+    dotFiles,
     rmRemote}: Options
 ) {
     try {
@@ -184,6 +186,7 @@ export async function copy (
     }
 
     let elements = getElements(local, exclude, dotFiles)
+    console.log('Uploading...')
     for (const elt of elements) {
         await upload(elt, remote)
     }
