@@ -184,7 +184,7 @@ export async function copy (
     if (rmRemote) {
         await removeRemote(remote)
     }
-
+    console.log('getting element list')
     let elements = getElements(local, exclude, dotFiles)
     console.log('Uploading...')
     for (const elt of elements) {
@@ -195,6 +195,7 @@ export async function copy (
 
 export async function run (
 ) {
+    console.log('Begin')
     if (process.env.NODE_ENV==='test' || TEST) {
         let config = ini.parse(fs.readFileSync('configuration.ini', 'utf-8'));
         let options = config.options
