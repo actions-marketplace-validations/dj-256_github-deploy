@@ -180,8 +180,9 @@ export async function copy (
     local = path.normalize(local)
     localBase = fs.statSync(local).isDirectory() ? local : path.dirname(local)
     remote = path.normalize(remote)
-
+    
     if (rmRemote) {
+        console.log('removing...')
         await removeRemote(remote)
     }
     console.log('getting element list')
