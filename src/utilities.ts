@@ -216,7 +216,7 @@ export async function run (
             dotFiles: !!core.getInput('dotfiles') || true,
             remote: core.getInput('remote'),
             exclude: core.getInput('exclude') || '',
-            rmRemote: core.getInput('rmRemote')==='' ? true : !!core.getInput('rmRemote'),
+            rmRemote: !!core.getInput('rmRemote'),
         })
     }
 }
