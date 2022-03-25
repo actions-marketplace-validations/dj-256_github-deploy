@@ -198,7 +198,7 @@ export async function copy (
 export async function run (
 ) {
     console.log('Begin')
-    if (process.env.NODE_ENV==='test' || TEST) {
+    if (TEST) {
         let config = ini.parse(fs.readFileSync('configuration.ini', 'utf-8'));
         let options = config.options
         console.log(options)
