@@ -9,8 +9,6 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-#    env:
-#      NODE_ENV: test
     steps:
       - name: checkout
         uses: actions/checkout@v2

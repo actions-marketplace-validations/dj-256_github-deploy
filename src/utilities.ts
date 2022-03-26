@@ -1,11 +1,11 @@
-import {error} from "@actions/core";
+import * as core from "@actions/core";
 import path = require('path');
 import scp = require('node-scp');
 import fs = require('fs');
 import glob = require('glob');
-import * as core from "@actions/core";
-import ini = require('ini')
+import ini = require('ini');
 
+let errors = 0
 let client: scp.ScpClient
 let localBase: string
 const TEST = false
@@ -49,20 +49,20 @@ interface Options {
 async function removeRemoteFile(file: string) {
     try {
         await client.unlink(file)
-        console.log(`removed file ${file}`)
+        console.log(`Removed file ${file}`)
     } catch (err) {
-        console.log(`couldn't remove file ${file} 🔴`)
-        console.log(err.message)
+        errors++
+        console.log(`🔴 Couldn't remove file ${file}: ${err.message}`)
     }
 }
 
 async function removeRemoteDir(dir: string) {
     try {
         await client.rmdir(dir)
-        console.log(`removed directory ${dir}`)
+        console.log(`Removed directory ${dir}`)
     } catch (err) {
-        console.log(`couldn't remove directory ${dir} 🔴`)
-        console.log(err.message)
+        errors++
+        console.log(`🔴 Couldn't remove directory ${dir}: ${err.message}`)
     }
 }
 
@@ -84,7 +84,7 @@ async function removeRemote(remote: string) {
     for(let file of files) {
         await removeRemoteElement(file, remote)
     }
-    console.log('removed remote')
+    console.log('Cleared remote')
 }
 
 const relativeLocal = (filePath: string) => {
@@ -95,25 +95,28 @@ const relativeLocal = (filePath: string) => {
 }
 
 async function upload (element: Element, remote: string) {
-    console.log(`Uploading element ${element}`)
     let localPath = element.path
     let remotePath = path.join(remote, relativeLocal(localPath))
 
     if (element.type===PathType.file) {
         try {
             await client.uploadFile(localPath, remotePath)
-            console.log(`copied file ${localPath} to ${remotePath} 🟢`)
+            console.log(`🟢 Copied file ${localPath} to ${remotePath}`)
         } catch (e) {
-            console.log(`couldn't copy file ${localPath} to ${remotePath} 🔴`)
-            console.log(e)
+            errors++
+            console.error(`🔴 Couldn't copy file ${localPath} to ${remotePath}: ${e.message}`)
         }
     } else {
         try {
             await client.mkdir(remotePath)
-            console.log(`created directory ${remotePath} 🟢`)
+            console.log(`🟢 Created directory ${remotePath}`)
         } catch (e) {
-            console.log(`couldn't create directory ${remotePath} 🔴`)
-            console.log(e)
+            if (e.code === 4) {
+                console.log(`Directory "${remotePath}" already exists`)
+            } else {
+                errors++
+                console.error(`🔴 Couldn't create directory ${remotePath}: ${e.message}`)
+            }
         }
     }
 }
@@ -163,7 +166,7 @@ export async function copy (
     dotFiles,
     rmRemote}: Options
 ) {
-    console.log(rmRemote)
+    console.log(`Remove remote: ${rmRemote}`)
     try {
         // @ts-ignore
         client = await scp({
@@ -173,50 +176,51 @@ export async function copy (
             password: password,
         })
     } catch (e) {
-        console.log(`Couldn't connect to server ❌\nPlease check your action parameters`)
-        console.log(e)
+        console.error(`Couldn't connect to server ❌\nPlease check your action parameters: ${e.message}`)
         process.exit(1)
     }
 
     local = path.normalize(local)
     localBase = fs.statSync(local).isDirectory() ? local : path.dirname(local)
     remote = path.normalize(remote)
-    
+
     if (rmRemote) {
-        console.log('removing...')
+        console.log('Clearing remote...')
         await removeRemote(remote)
     }
-    console.log('getting element list')
+    console.log('Generating element list...')
     let elements = getElements(local, exclude, dotFiles)
     console.log('Uploading...')
     for (const elt of elements) {
         await upload(elt, remote)
     }
-    return await client.close()
+    await client.close()
+    if (errors > 0) {
+        console.error(`\n${errors} error${errors > 1 ? 's' : ''}`)
+        process.exit(1)
+    } else {
+        console.log("\nAll files transferred successfully")
+    }
 }
 
 export async function run (
 ) {
-    console.log('Begin')
-    if (TEST) {
+    if (process.env.GITHUB_ACTION_ENV === 'test' || TEST) {
         let config = ini.parse(fs.readFileSync('configuration.ini', 'utf-8'));
         let options = config.options
-        console.log(options)
-        return await copy(
-            options
-        )
+        await copy(options)
     } else {
         console.log(core.getInput('rmRemote'))
-        return await copy ({
+        return await copy({
             host: core.getInput('host'),
             username: core.getInput('username'),
             password: core.getInput('password'),
             port: +core.getInput('port') || 22,
             local: core.getInput('local'),
-            dotFiles: core.getInput('dotfiles').match(/true/i) ? true : false,
+            dotFiles: !!core.getInput('dotfiles'),
             remote: core.getInput('remote'),
             exclude: core.getInput('exclude') || '',
-            rmRemote: core.getInput('rmRemote').match(/true/i) ? true : false,
+            rmRemote: !!core.getInput('rmRemote'),
         })
     }
 }
