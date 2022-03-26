@@ -208,6 +208,7 @@ export async function run (
         let options = config.options
         await copy(options)
     } else {
+        console.log(`rmRemote: ${core.getInput('rmRemote')}`)
         return await copy({
             host: core.getInput('host'),
             username: core.getInput('username'),
