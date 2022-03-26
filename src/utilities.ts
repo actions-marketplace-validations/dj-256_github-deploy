@@ -214,10 +214,10 @@ export async function run (
             password: core.getInput('password'),
             port: +core.getInput('port') || 22,
             local: core.getInput('local'),
-            dotFiles: !!core.getInput('dotfiles') || true,
+            dotFiles: core.getInput('dotfiles') === "" ? true : core.getInput('dotfiles') === "true",
             remote: core.getInput('remote'),
             exclude: core.getInput('exclude') || '',
-            rmRemote: !!core.getInput('rmRemote') || false,
+            rmRemote: core.getInput('rmRemote') === "" ? false : core.getInput('rmRemote') === "true",
         })
     }
 }
