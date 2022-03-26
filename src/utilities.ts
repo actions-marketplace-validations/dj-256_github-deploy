@@ -83,7 +83,7 @@ async function removeRemote(remote: string) {
     for(let file of files) {
         await removeRemoteElement(file, remote)
     }
-    console.log('Cleared remote')
+    console.log('Cleared remote\n')
 }
 
 const relativeLocal = (filePath: string) => {
@@ -150,7 +150,7 @@ function getElements(local: string, exclude: string, dotFiles: boolean) {
             elements.push({type: PathType.directory, path: localPath})
         }
     })
-    console.log('Element list generated')
+    console.log('Element list generated\n')
     return elements
 }
 
@@ -165,7 +165,6 @@ export async function copy (
     dotFiles,
     rmRemote}: Options
 ) {
-    console.log(`Remove remote: ${rmRemote}`)
     try {
         // @ts-ignore
         client = await scp({
@@ -195,10 +194,10 @@ export async function copy (
     }
     await client.close()
     if (errors > 0) {
-        console.error(`\n${errors} error${errors > 1 ? 's' : ''}`)
+        console.error(`\n\n${errors} error${errors > 1 ? 's' : ''}`)
         process.exit(1)
     } else {
-        console.log("\nAll files transferred successfully")
+        console.log("\n\nAll files transferred successfully")
     }
 }
 
@@ -209,7 +208,6 @@ export async function run (
         let options = config.options
         await copy(options)
     } else {
-        console.log(core.getInput('rmRemote'))
         return await copy({
             host: core.getInput('host'),
             username: core.getInput('username'),
