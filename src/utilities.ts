@@ -8,7 +8,6 @@ import ini = require('ini');
 let errors = 0
 let client: scp.ScpClient
 let localBase: string
-const TEST = false
 enum PathType {
     file, directory
 }
@@ -205,7 +204,7 @@ export async function copy (
 
 export async function run (
 ) {
-    if (process.env.GITHUB_ACTION_ENV === 'test' || TEST) {
+    if (process.env.GITHUB_ACTION_ENV === 'test') {
         let config = ini.parse(fs.readFileSync('configuration.ini', 'utf-8'));
         let options = config.options
         await copy(options)
