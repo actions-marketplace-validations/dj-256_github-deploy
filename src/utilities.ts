@@ -1,13 +1,14 @@
-import * as core from "@actions/core";
-import path = require('path');
-import scp = require('node-scp');
-import fs = require('fs');
-import glob = require('glob');
-import ini = require('ini');
+import * as core from "@actions/core"
+import path = require("path")
+import scp = require("node-scp")
+import fs = require("fs")
+import glob = require("glob")
+import ini = require("ini")
 
 let errors = 0
 let client: scp.ScpClient
 let localBase: string
+
 enum PathType {
     file, directory
 }
@@ -49,7 +50,7 @@ async function removeRemoteFile(file: string) {
     try {
         await client.unlink(file)
         console.log(`Removed file ${file}`)
-    } catch (err) {
+    } catch (err: any) {
         errors++
         console.log(`🔴 Couldn't remove file ${file}: ${err.message}`)
     }
@@ -59,7 +60,7 @@ async function removeRemoteDir(dir: string) {
     try {
         await client.rmdir(dir)
         console.log(`Removed directory ${dir}`)
-    } catch (err) {
+    } catch (err: any) {
         errors++
         console.log(`🔴 Couldn't remove directory ${dir}: ${err.message}`)
     }
@@ -77,7 +78,7 @@ async function removeRemote(remote: string) {
     let files
     try {
         files = await client.list(remote)
-    } catch (err) {
+    } catch (err: any) {
         console.log(err.message)
     }
     for(let file of files) {
@@ -101,7 +102,7 @@ async function upload (element: Element, remote: string) {
         try {
             await client.uploadFile(localPath, remotePath)
             console.log(`🟢 Copied file ${localPath} to ${remotePath}`)
-        } catch (e) {
+        } catch (e: any) {
             errors++
             console.error(`🔴 Couldn't copy file ${localPath} to ${remotePath}: ${e.message}`)
         }
@@ -109,7 +110,7 @@ async function upload (element: Element, remote: string) {
         try {
             await client.mkdir(remotePath)
             console.log(`🟢 Created directory ${remotePath}`)
-        } catch (e) {
+        } catch (e: any) {
             if (e.code === 4) {
                 console.log(`Directory "${remotePath}" already exists`)
             } else {
@@ -173,7 +174,7 @@ export async function copy (
             username: username,
             password: password,
         })
-    } catch (e) {
+    } catch (e: any) {
         console.error(`Couldn't connect to server ❌\nPlease check your action parameters: ${e.message}`)
         process.exit(1)
     }
