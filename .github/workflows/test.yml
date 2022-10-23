@@ -24,7 +24,7 @@ jobs:
         uses: ./
         with:
           local: ./res/file1.txt
-          remote: /scp
+          remote: /scp-tests
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           port: ${{ secrets.PORT }}
@@ -33,7 +33,7 @@ jobs:
         uses: ./
         with:
           local: ./res/dir1
-          remote: /scp
+          remote: /scp-tests
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           port: ${{ secrets.PORT }}
@@ -42,7 +42,7 @@ jobs:
         uses: ./
         with:
           local: res/dir1
-          remote: /scp
+          remote: /scp-tests
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           port: ${{ secrets.PORT }}
@@ -52,7 +52,7 @@ jobs:
         uses: ./
         with:
           local: res/
-          remote: /scp
+          remote: /scp-tests
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           port: ${{ secrets.PORT }}
@@ -62,9 +62,20 @@ jobs:
         uses: ./
         with:
           local: res/
-          remote: /scp
+          remote: /scp-tests
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           port: ${{ secrets.PORT }}
           password: ${{ secrets.PASSWORD }}
+          exclude: 'dir1/file11.txt'
+      - name: Copy files with ssh key
+        uses: ./
+        with:
+          local: ./res/file1.txt
+          remote: /scp-tests
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          port: ${{ secrets.PORT }}
+          password: ${{ secrets.PASSWORD }}
+          privateKey: ${{ secrets.SSH_KEY }}
           exclude: 'dir1/file11.txt'

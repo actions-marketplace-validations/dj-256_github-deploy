@@ -6,3 +6,4 @@ dist
 *.ini
 *.sh
 package-lock.json
+**/config.*
